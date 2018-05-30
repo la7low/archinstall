@@ -47,21 +47,23 @@ case $installfor in
 esac
 
 ZONEINFO="Europe/Berlin"
-
-EFI_DEVICE="/dev/sda1"
-EFI_MOUNTS="rw,nosuid,nodev,noatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro,discard"
-
-# at hajni
-BTRFS_DEVICE="/dev/sdb"
-# at laco
-BTRFS_DEVICE="/dev/sda3"
-
+EFI_MOUNTOPTS="rw,nosuid,nodev,noatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro,discard"
 BTRFS_LABEL="arch64"
-BTRFS_MOUNTS="rw,noatime,discard,ssd,compress=lzo,space_cache"
-BTRFS_MOUNTS_NOEXEC="rw,noatime,noexec,discard,ssd,compress=lzo,space_cache"
-# check with hdparm -I /dev/sda | grep TRIM
-# to see hdd supports trim, only then use discard mount option
+# check with "hdparm -I /dev/sda | grep TRIM" to see if the ssd supports trim, only then use the discard mount option:
+BTRFS_MOUNTOPTS="rw,noatime,discard,ssd,compress=lzo,space_cache"
+BTRFS_MOUNTOPTS_NOEXEC="rw,noatime,noexec,discard,ssd,compress=lzo,space_cache"
 
+
+if [$installfor = 'hajni']
+then
+    EFI_DEVICE="/dev/sda1"
+    BTRFS_DEVICE="/dev/sdb"
+else
+    EFI_DEVICE="/dev/sda1"
+    BTRFS_DEVICE="/dev/sda3"
+fi
+
+# formats
 mkfs.vfat -F32 -n "EFI" $EFI_DEVICE
 mkfs.btrfs -L "$BTRFS_LABEL" $BTRFS_DEVICE -f
 # swap
@@ -80,7 +82,7 @@ BTRFS_DEVICE_UUID=`blkid $BTRFS_DEVICE -o value -s UUID` # = at the end!!!
 EFI_DEVICE_UUID=`blkid $EFI_DEVICE -o value -s UUID`
 
 mkdir /mnt/btrfs-root
-mount -o $BTRFS_MOUNTS $BTRFS_DEVICE /mnt/btrfs-root
+mount -o $BTRFS_MOUNTOPTS $BTRFS_DEVICE /mnt/btrfs-root
 cd /mnt/btrfs-root
 1;  # used this
 btrfs subvolume create ROOT
@@ -91,7 +93,7 @@ btrfs subvolume create builds
 btrfs subvolume create _snaps
 
 mkdir -p /mnt/root
-mount -o $BTRFS_MOUNTS,subvol=ROOT $BTRFS_DEVICE /mnt/root
+mount -o $BTRFS_MOUNTOPTS,subvol=ROOT $BTRFS_DEVICE /mnt/root
 cd /mnt/root
 mkdir -p home
 mkdir -p opt
@@ -99,14 +101,14 @@ mkdir -p var/cache/pacman/pkg
 mkdir -p var/abs
 mkdir -p .snapshots
 
-mount -o $BTRFS_MOUNTS,subvol=home $BTRFS_DEVICE /mnt/root/home
-mount -o $BTRFS_MOUNTS,subvol=opt $BTRFS_DEVICE /mnt/root/opt
-mount -o $BTRFS_MOUNTS,subvol=pacpkg $BTRFS_DEVICE /mnt/root/var/cache/pacman/pkg
-mount -o $BTRFS_MOUNTS,subvol=builds $BTRFS_DEVICE /mnt/root/var/abs
-mount -o $BTRFS_MOUNTS,subvol=_snaps $BTRFS_DEVICE /mnt/root/.snapshots
+mount -o $BTRFS_MOUNTOPTS,subvol=home $BTRFS_DEVICE /mnt/root/home
+mount -o $BTRFS_MOUNTOPTS,subvol=opt $BTRFS_DEVICE /mnt/root/opt
+mount -o $BTRFS_MOUNTOPTS,subvol=pacpkg $BTRFS_DEVICE /mnt/root/var/cache/pacman/pkg
+mount -o $BTRFS_MOUNTOPTS,subvol=builds $BTRFS_DEVICE /mnt/root/var/abs
+mount -o $BTRFS_MOUNTOPTS,subvol=_snaps $BTRFS_DEVICE /mnt/root/.snapshots
 
 mkdir -p /mnt/root/boot
-mount -o $EFI_MOUNTS $EFI_DEVICE /mnt/root/boot
+mount -o $EFI_MOUNTOPTS $EFI_DEVICE /mnt/root/boot
 
 2;
 mkdir -p /mnt/btrfs-root/__snapshot
@@ -118,29 +120,29 @@ btrfs subvolume create /mnt/btrfs-root/__active/var
 
 
 mkdir -p /mnt/btrfs-active
-mount -o $BTRFS_MOUNTS,subvol=__active/ROOT $BTRFS_DEVICE /mnt/btrfs-active
+mount -o $BTRFS_MOUNTOPTS,subvol=__active/ROOT $BTRFS_DEVICE /mnt/btrfs-active
 mkdir -p /mnt/btrfs-active/{home,opt}
 mkdir -p /mnt/btrfs-active/var/lib
-mount -o $BTRFS_MOUNTS,subvol=__active/home $BTRFS_DEVICE /mnt/btrfs-active/home
-mount -o $BTRFS_MOUNTS,subvol=__active/opt $BTRFS_DEVICE /mnt/btrfs-active/opt
-mount -o $BTRFS_MOUNTS_NOEXEC,subvol=__active/var $BTRFS_DEVICE /mnt/btrfs-active/var
+mount -o $BTRFS_MOUNTOPTS,subvol=__active/home $BTRFS_DEVICE /mnt/btrfs-active/home
+mount -o $BTRFS_MOUNTOPTS,subvol=__active/opt $BTRFS_DEVICE /mnt/btrfs-active/opt
+mount -o $BTRFS_MOUNTOPTS_NOEXEC,subvol=__active/var $BTRFS_DEVICE /mnt/btrfs-active/var
 mkdir -p /mnt/btrfs-active/var/lib
 mount --bind /mnt/btrfs-root/__active/ROOT/var/lib /mnt/btrfs-active/var/lib
 
 mkdir -p /mnt/btrfs-active/boot
-mount -o $EFI_MOUNTS $EFI_DEVICE /mnt/btrfs-active/boot
+mount -o $EFI_MOUNTOPTS $EFI_DEVICE /mnt/btrfs-active/boot
 
 # to chroot again:
 mkdir /mnt/btrfs-root
-mount -o $BTRFS_MOUNTS $BTRFS_DEVICE /mnt/btrfs-root
+mount -o $BTRFS_MOUNTOPTS $BTRFS_DEVICE /mnt/btrfs-root
 mkdir -p /mnt/btrfs-active
-mount -o $BTRFS_MOUNTS,subvol=__active/ROOT $BTRFS_DEVICE /mnt/btrfs-active
-mount -o $BTRFS_MOUNTS,subvol=__active/home $BTRFS_DEVICE /mnt/btrfs-active/home
-mount -o $BTRFS_MOUNTS,subvol=__active/opt $BTRFS_DEVICE /mnt/btrfs-active/opt
-mount -o $BTRFS_MOUNTS_NOEXEC,subvol=__active/var $BTRFS_DEVICE /mnt/btrfs-active/var
+mount -o $BTRFS_MOUNTOPTS,subvol=__active/ROOT $BTRFS_DEVICE /mnt/btrfs-active
+mount -o $BTRFS_MOUNTOPTS,subvol=__active/home $BTRFS_DEVICE /mnt/btrfs-active/home
+mount -o $BTRFS_MOUNTOPTS,subvol=__active/opt $BTRFS_DEVICE /mnt/btrfs-active/opt
+mount -o $BTRFS_MOUNTOPTS_NOEXEC,subvol=__active/var $BTRFS_DEVICE /mnt/btrfs-active/var
 mount --bind /mnt/btrfs-root/__active/ROOT/var/lib /mnt/btrfs-active/var/lib
 
-mount -o $EFI_MOUNTS $EFI_DEVICE /mnt/btrfs-active/boot
+mount -o $EFI_MOUNTOPTS $EFI_DEVICE /mnt/btrfs-active/boot
 arch-chroot /mnt/btrfs-active
 ############
 
@@ -161,6 +163,7 @@ vi /mnt/btrfs-active/etc/fstab
  * add "/run/btrfs-root/__current/ROOT/var/lib	/var/lib none bind 0 0" (to bind the /var/lib on the var subvolume to the /var/lib on the ROOT subvolume)
 mkdir -p /mnt/btrfs-active/run/btrfs-root
 arch-chroot /mnt/btrfs-active
+
 
 # configuration
 cp /etc/pacman.d/mirrorlist{,.backup}
@@ -382,6 +385,3 @@ sudo pacman -S bluez bluez-utils rfkill
 sudo systemctl enable bluetooth
 sudo systemctl disable dhcpcd@
 sudo systemctl enable NetworkManager
-
-
-
