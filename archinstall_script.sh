@@ -13,9 +13,9 @@
 
 # gdisk for partitioning
 # partitions
-# 1 512MB a EFI boot partition, fat32
-# 2 8GB swap (btrfs does not support swap file yet)
-# 3 rest linux fs partition, btrfs
+# 1 512MB a EFI boot partition, ef00 fat32
+# 2 8GB swap: 8200 (btrfs does not support swap file yet)
+# 3 rest linux fs partition: 8300, btrfs
 # tmpfs is used so no need to have separate subvolume for /tmp
 
 installfor='laco'  # 'hajni', 'up2', 'raspi', 'laco'
@@ -27,7 +27,7 @@ case $installfor in
         FULL_NAME="Hajni Molnar"
         ;;
     up2)
-        HOSTNAME="jetson"
+        HOSTNAME="up2"
         USERNAME="laco"
         FULL_NAME="Laszlo Molnar"
         ;;
@@ -198,12 +198,12 @@ systemctl enable ntpd
 
 #add user
 groupadd $USERNAME
-useradd -m -g $USERNAME -G users,wheel,storage,power,network,disk,audio,video -s /bin/bash -c "$FULL_NAME" $USERNAME
+useradd -m -g $USERNAME -G users,wheel,sudo,storage,power,network,disk,audio,video -s /bin/bash -c "$FULL_NAME" $USERNAME
 chfn --full-name "$FULL_NAME" $USERNAME
 # userdel -r username
 passwd $USERNAME
 
-pacman -S sudo vim dosfstools wget unzip dialog wpa_supplicant ppp
+pacman -S sudo vim dosfstools wget unzip dialog wpa_supplicant ppp dialog
 visudo
 
 # uncomment %wheel ALL=(ALL:ALL) ALL or %wheel ALL=(ALL:ALL) NOPASSWD: ALL if you don’t want to enter your password again when using sudo.
