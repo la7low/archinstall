@@ -123,6 +123,8 @@ mkdir -p /mnt/root/boot
 mount -o $EFI_MOUNTOPTS $EFI_DEVICE /mnt/root/boot
 
 arch-chroot /mnt/root /bin/bash
+
+umount /mnt/root
 ############
 
 2;
@@ -235,6 +237,8 @@ vim /etc/mkinitcpio.conf
 # Early KMS start
 # MODULES="... intel_agp i915 ... nvidia"
 mkinitcpio -p linux
+# PREVENT FSCK:
+ln -s /sbin/true /sbin/fsck.btrfs
 
 # blacklist nouveau for proprietary driver
 vim /etc/modprobe.d/blacklist.conf
@@ -271,11 +275,11 @@ hideui banner
 menuentry "archlinux64" {
         icon     /EFI/microsoft/boot/icons/os_arch.png
         volume   BOOT
-        loader   /boot/vmlinuz-linux
-        initrd   /boot/initramfs-linux.img
+        loader   /vmlinuz-linux
+        initrd   /initramfs-linux.img
         options  "root=PARTUUID=98d44137-8b4a-4ff6-87fe-5cb9603260e4 rw rootflags=subvol=ROOT i915.preliminary_hw_support=1"
         submenuentry "Boot using fallback initramfs" {
-                initrd /boot/initramfs-linux-fallback.img
+                initrd /initramfs-linux-fallback.img
         }
 }
 
