@@ -64,7 +64,7 @@ else
 fi
 
 # formats
-mkfs.vfat -F32 -n "EFI" $EFI_DEVICE
+mkfs.vfat -F32 -n "EFI" -L boot $EFI_DEVICE
 mkfs.btrfs -L "$BTRFS_LABEL" $BTRFS_DEVICE -f
 # swap
 mkswap /dev/sda2
@@ -109,6 +109,21 @@ mount -o $BTRFS_MOUNTOPTS,subvol=_snaps $BTRFS_DEVICE /mnt/root/.snapshots
 
 mkdir -p /mnt/root/boot
 mount -o $EFI_MOUNTOPTS $EFI_DEVICE /mnt/root/boot
+
+# to chroot again:
+mkdir /mnt/root
+mount -o $BTRFS_MOUNTOPTS,subvol=ROOT $BTRFS_DEVICE /mnt/root
+mount -o $BTRFS_MOUNTOPTS,subvol=home $BTRFS_DEVICE /mnt/root/home
+mount -o $BTRFS_MOUNTOPTS,subvol=opt $BTRFS_DEVICE /mnt/root/opt
+mount -o $BTRFS_MOUNTOPTS,subvol=pacpkg $BTRFS_DEVICE /mnt/root/var/cache/pacman/pkg
+mount -o $BTRFS_MOUNTOPTS,subvol=builds $BTRFS_DEVICE /mnt/root/var/abs
+mount -o $BTRFS_MOUNTOPTS,subvol=_snaps $BTRFS_DEVICE /mnt/root/.snapshots
+
+mkdir -p /mnt/root/boot
+mount -o $EFI_MOUNTOPTS $EFI_DEVICE /mnt/root/boot
+
+arch-chroot /mnt/root /bin/bash
+############
 
 2;
 mkdir -p /mnt/btrfs-root/__snapshot
@@ -255,12 +270,12 @@ hideui banner
 # PARTUUID OF THE ROOT SUBVOLUME!!!!!
 menuentry "archlinux64" {
         icon     /EFI/microsoft/boot/icons/os_arch.png
-        volume   Boot
-        loader   /vmlinuz-linux
-        initrd   /initramfs-linux.img
+        volume   BOOT
+        loader   /boot/vmlinuz-linux
+        initrd   /boot/initramfs-linux.img
         options  "root=PARTUUID=98d44137-8b4a-4ff6-87fe-5cb9603260e4 rw rootflags=subvol=ROOT i915.preliminary_hw_support=1"
         submenuentry "Boot using fallback initramfs" {
-                initrd /initramfs-linux-fallback.img
+                initrd /boot/initramfs-linux-fallback.img
         }
 }
 
