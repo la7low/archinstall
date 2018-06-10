@@ -58,13 +58,18 @@ if [$installfor = 'hajni']
 then
     EFI_DEVICE="/dev/sda1"
     BTRFS_DEVICE="/dev/sdb"
+if [$installfor = 'up2']
+then
+    EFI_DEVICE="/dev/mmcblk0p1"
+    BTRFS_DEVICE="/dev/mmcblk0p3"
 else
     EFI_DEVICE="/dev/sda1"
     BTRFS_DEVICE="/dev/sda3"
 fi
 
 # formats
-mkfs.vfat -F32 -n "EFI" -L boot $EFI_DEVICE
+mkfs.vfat -F32 -n "EFI" $EFI_DEVICE
+fatlabel $EFI_DEVICE BOOT
 mkfs.btrfs -L "$BTRFS_LABEL" $BTRFS_DEVICE -f
 # swap
 mkswap /dev/sda2
@@ -215,7 +220,7 @@ systemctl enable ntpd
 
 #add user
 groupadd $USERNAME
-useradd -m -g $USERNAME -G users,wheel,sudo,storage,power,network,disk,audio,video -s /bin/bash -c "$FULL_NAME" $USERNAME
+useradd -m -g $USERNAME -G users,wheel,sudo,storage,power,network,disk,audio,video,sys,lp -s /bin/bash -c "$FULL_NAME" $USERNAME
 chfn --full-name "$FULL_NAME" $USERNAME
 # userdel -r username
 passwd $USERNAME
