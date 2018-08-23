@@ -11,7 +11,8 @@
 # cat /proc/partitions
 # or sudo parted /dev/sda print
 
-# gdisk for partitioning
+# gdisk for partitioning (fdisk in EFIvars are not loaded: ls /sys/firmware/efi/efivars)
+# for non-uefi bios not suppporting GPT no EFI partition needed and use GRUB as bootloader see archwiki
 # partitions
 # 1 512MB a EFI boot partition, ef00 fat32
 # 2 8GB swap: 8200 (btrfs does not support swap file yet)
@@ -169,7 +170,7 @@ arch-chroot /mnt/btrfs-active
 ############
 
 1;
-pacstrap /mnt/root base base-devel btrfs-progs sudo dosfstools
+pacstrap /mnt/root base base-devel btrfs-progs sudo dosfstools vim
 genfstab -U -p /mnt/root >> /mnt/root/etc/fstab
 arch-chroot /mnt/root /bin/bash
 
@@ -301,6 +302,7 @@ exit
 
 umount /mnt/btrfs-active/*
 umount /mnt/btrfs-root
+umount /mnt/btrfs-root/*
 
 reboot
 
@@ -412,3 +414,5 @@ sudo pacman -S bluez bluez-utils rfkill
 sudo systemctl enable bluetooth
 sudo systemctl disable dhcpcd@
 sudo systemctl enable NetworkManager
+
+https://wiki.archlinux.org/index.php/microcode
