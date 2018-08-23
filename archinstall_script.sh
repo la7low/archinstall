@@ -220,7 +220,7 @@ systemctl enable ntpd
 
 #add user
 groupadd $USERNAME
-useradd -m -g $USERNAME -G users,wheel,sudo,storage,power,network,disk,audio,video,sys,lp -s /bin/bash -c "$FULL_NAME" $USERNAME
+useradd -m -g $USERNAME -G users,wheel,storage,power,network,disk,audio,video,sys,lp -s /bin/bash -c "$FULL_NAME" $USERNAME
 chfn --full-name "$FULL_NAME" $USERNAME
 # userdel -r username
 passwd $USERNAME
@@ -238,11 +238,12 @@ passwd -d root
 #generate initramfs
 # pacman -S btrfs-progs
 vim /etc/mkinitcpio.conf
- * Remove fsck and add btrfs to HOOKS
+ * Remove fsck and add btrfs consolefont resume to HOOKS
 # Early KMS start
 # MODULES="... intel_agp i915 ... nvidia"
 mkinitcpio -p linux
 # PREVENT FSCK:
+mv /sbin/fsck.btrfs /sbin/fsck.btrfs.REM
 ln -s /sbin/true /sbin/fsck.btrfs
 
 # blacklist nouveau for proprietary driver
@@ -276,13 +277,15 @@ vim /boot/EFI/microsoft/boot/refind.conf
 timeout 5
 hideui banner
 
-# PARTUUID OF THE ROOT SUBVOLUME!!!!!
+# PARTUUID OF THE ROOT SUBVOLUME!!!!! blkid /dev/sda3
+# at resume UUID of swap partition!!! blkid /dev/sda2
 menuentry "archlinux64" {
         icon     /EFI/microsoft/boot/icons/os_arch.png
         volume   BOOT
         loader   /vmlinuz-linux
         initrd   /initramfs-linux.img
         options  "root=PARTUUID=98d44137-8b4a-4ff6-87fe-5cb9603260e4 rw rootflags=subvol=ROOT i915.preliminary_hw_support=1"
+    options  "root=PARTUUID=91d0cd39-9980-4f96-ab11-66b348c15335 rw rootflags=subvol=ROOT resume=UUID=f2e83f5b-a526-439e-89c0-112ddc5aeb76"
         submenuentry "Boot using fallback initramfs" {
                 initrd /initramfs-linux-fallback.img
         }
