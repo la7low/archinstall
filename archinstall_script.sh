@@ -11,7 +11,7 @@
 # cat /proc/partitions
 # or sudo parted /dev/sda print
 
-# gdisk for partitioning (fdisk in EFIvars are not loaded: ls /sys/firmware/efi/efivars)
+# gdisk for partitioning (fdisk if EFIvars are not loaded: ls /sys/firmware/efi/efivars)
 # for non-uefi bios not suppporting GPT no EFI partition needed and use GRUB as bootloader see archwiki
 # partitions
 # 1 512MB a EFI boot partition, ef00 fat32
