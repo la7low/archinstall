@@ -19,7 +19,7 @@
 # 3 rest linux fs partition: 8300, btrfs
 # tmpfs is used so no need to have separate subvolume for /tmp
 
-installfor='laco'  # 'hajni', 'up2', 'raspi', 'laco'
+installfor='laco'  # 'hajni', 'up2', 'raspi', 'laco', 'sziszko'
 
 case $installfor in
     hajni)
@@ -41,6 +41,11 @@ case $installfor in
         HOSTNAME="lacopc"
         USERNAME="laco"
         FULL_NAME="Laszlo Molnar"
+        ;;
+    sziszko)
+        HOSTNAME="sziszkopc"
+        USERNAME="sziszko"
+        FULL_NAME="Szilvia Svantner"
         ;;
     *)
         echo "Please give a valid option for installfor"
@@ -187,10 +192,12 @@ vi /mnt/btrfs-active/etc/fstab
 mkdir -p /mnt/btrfs-active/run/btrfs-root
 arch-chroot /mnt/btrfs-active
 
+# swap
+UUID=a1de47a5-0cf0-4f33-94d6-26bb0ed2d447 none swap defaults 0 0
 
 # configuration
 cp /etc/pacman.d/mirrorlist{,.backup}
-rankmirrors -n 6 /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
+# rankmirrors -n 6 /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
 #
 echo $HOSTNAME > /etc/hostname
 /etc/hosts
@@ -266,7 +273,7 @@ pacman -S refind-efi
 # check boot is mounted
 refind-install --usedefault /dev/sda1 --alldrivers
 
-# trick motherboard UEFI
+# trick motherboard UEFI at ACER
 mkdir -p /boot/EFI/microsoft/boot/
 mv /boot/EFI/refind/* /boot/EFI/microsoft/boot/
 rm -fr /boot/EFI/refind/
