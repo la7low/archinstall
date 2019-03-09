@@ -47,6 +47,11 @@ case $installfor in
         USERNAME="sziszko"
         FULL_NAME="Szilvia Svantner"
         ;;
+    svani)
+        HOSTNAME="svanipc"
+        USERNAME="svani"
+        FULL_NAME="Istvan Svantner"
+        ;;
     *)
         echo "Please give a valid option for installfor"
         exit 1
@@ -82,9 +87,7 @@ mkswap /dev/sda2
 swapon /dev/sda2
 # add with uuid to fstab
 # /dev/sda2 none swap defaults,discard 0 0
-reduce swapiness 0..100
-/etc/sysctl.d/99-sysctl.conf
-vm.swappiness=10
+
 # only at hajni
 mkfs.ext4 /dev/sda3 -L CUCC
 lsblk -f
@@ -195,6 +198,10 @@ arch-chroot /mnt/btrfs-active
 # swap
 UUID=a1de47a5-0cf0-4f33-94d6-26bb0ed2d447 none swap defaults 0 0
 
+reduce swapiness 0..100
+/etc/sysctl.d/99-sysctl.conf
+vm.swappiness=10
+
 # configuration
 cp /etc/pacman.d/mirrorlist{,.backup}
 # rankmirrors -n 6 /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
@@ -298,6 +305,20 @@ menuentry "archlinux64" {
                 initrd /initramfs-linux-fallback.img
         }
 }
+# on dell
+menuentry "archlinux64" {
+    icon     /EFI/BOOT/icons/os_arch.png
+    volume   BOOT
+    loader   /vmlinuz-linux
+    initrd   /initramfs-linux.img
+    options  "root=PARTUUID=91d0cd39-9980-4f96-ab11-66b348c15335 rw rootflags=subvol=ROOT resume=UUID=f2e83f5b-a526-439e-89c0-112ddc5aeb76 iommu=pt"
+    submenuentry "Boot using fallback initramfs" {
+        initrd /initramfs-linux-fallback.img
+    }
+    submenuentry "Boot to terminal" {
+        add_options "systemd.unit=multi-user.target"
+    }
+}
 
 
 # You can sometimes pass special options to a specific boot by pressing the F2 or Insert key once it's highlighted
@@ -310,6 +331,7 @@ exit
 umount /mnt/btrfs-active/*
 umount /mnt/btrfs-root
 umount /mnt/btrfs-root/*
+umount /mnt/root/*
 
 reboot
 
