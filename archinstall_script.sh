@@ -305,6 +305,20 @@ menuentry "archlinux64" {
                 initrd /initramfs-linux-fallback.img
         }
 }
+# with intel-ucode
+menuentry "archlinux64" {
+    icon     /EFI/BOOT/icons/os_arch.png
+    volume   BOOT
+    loader   /vmlinuz-linux
+    initrd   /initramfs-linux.img
+    options  "root=PARTUUID=8234385c-5d6f-44b0-9596-7697be6e360a rw rootflags=subvol=ROOT initrd=/intel-ucode.img"
+    submenuentry "Boot using fallback initramfs" {
+        initrd /boot/initramfs-linux-fallback.img
+    }
+    submenuentry "Boot to terminal" {
+        add_options "systemd.unit=multi-user.target"
+    }
+}
 # on dell
 menuentry "archlinux64" {
     icon     /EFI/BOOT/icons/os_arch.png
@@ -319,7 +333,6 @@ menuentry "archlinux64" {
         add_options "systemd.unit=multi-user.target"
     }
 }
-
 
 # You can sometimes pass special options to a specific boot by pressing the F2 or Insert key once it's highlighted
 # the automatic menuentries can be removed
