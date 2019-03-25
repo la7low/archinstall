@@ -15,7 +15,7 @@
 # for non-uefi bios not suppporting GPT no EFI partition needed and use GRUB as bootloader see archwiki
 # partitions
 # 1 512MB a EFI boot partition, ef00 fat32
-# 2 8GB swap: 8200 (btrfs does not support swap file yet)
+# 2 8GB swap: 8200 (btrfs does not support swap file yet, since 5.0 yes)
 # 3 rest linux fs partition: 8300, btrfs
 # tmpfs is used so no need to have separate subvolume for /tmp
 
@@ -52,6 +52,11 @@ case $installfor in
         USERNAME="svani"
         FULL_NAME="Istvan Svantner"
         ;;
+    lapi)
+        HOSTNAME="palinkapc"
+        USERNAME="lapi"
+        FULL_NAME="Palinka Lovagok"
+        ;;
     *)
         echo "Please give a valid option for installfor"
         exit 1
@@ -75,7 +80,7 @@ then
     BTRFS_DEVICE="/dev/mmcblk0p3"
 else
     EFI_DEVICE="/dev/sda1"
-    BTRFS_DEVICE="/dev/sda3"
+    BTRFS_DEVICE="/dev/sda2"
 fi
 
 # formats
@@ -240,9 +245,8 @@ chfn --full-name "$FULL_NAME" $USERNAME
 # userdel -r username
 passwd $USERNAME
 
-pacman -S sudo vim dosfstools wget unzip dialog wpa_supplicant ppp dialog
+pacman -S sudo vim dosfstools wget unzip dialog wpa_supplicant ppp dialog openssh
 visudo
-
 # uncomment %wheel ALL=(ALL:ALL) ALL or %wheel ALL=(ALL:ALL) NOPASSWD: ALL if you don’t want to enter your password again when using sudo.
 
 # Now remove the root password so that root cannot login (don’t lock the account with passwd -l because than then recovery root login doesn’t work anymore):
@@ -272,7 +276,7 @@ blacklist uvcvideo
 
 #install refind from zip
 cd /tmp
-pacman -S wget unzip
+# pacman -S wget unzip
 wget  http://sourceforge.net/projects/refind/files/0.10.1/refind-bin-0.10.1.zip/download
 unzip download
 # install refind with pacman
@@ -287,7 +291,7 @@ rm -fr /boot/EFI/refind/
 mv /boot/EFI/microsoft/boot/refind_x64.efi /boot/EFI/microsoft/boot/bootmgfw.efi
 
 vim /boot/EFI/microsoft/boot/refind.conf
-# blkid /dev/sda3 to get PARTUUID
+# blkid /dev/sda2 to get PARTUUID
 # kernel parameters at the end of options remove nomodeset!
 timeout 5
 hideui banner
@@ -313,7 +317,7 @@ menuentry "archlinux64" {
     initrd   /initramfs-linux.img
     options  "root=PARTUUID=8234385c-5d6f-44b0-9596-7697be6e360a rw rootflags=subvol=ROOT initrd=/intel-ucode.img"
     submenuentry "Boot using fallback initramfs" {
-        initrd /boot/initramfs-linux-fallback.img
+        initrd /initramfs-linux-fallback.img
     }
     submenuentry "Boot to terminal" {
         add_options "systemd.unit=multi-user.target"
@@ -337,6 +341,8 @@ menuentry "archlinux64" {
 # You can sometimes pass special options to a specific boot by pressing the F2 or Insert key once it's highlighted
 # the automatic menuentries can be removed
 rm /boot/refind_linux.conf
+# set default option
+default_selection archlinux
 
 #
 exit
