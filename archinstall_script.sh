@@ -323,13 +323,14 @@ menuentry "archlinux64" {
         add_options "systemd.unit=multi-user.target"
     }
 }
-# on dell
+# on dell with amd
 menuentry "archlinux64" {
     icon     /EFI/BOOT/icons/os_arch.png
     volume   BOOT
     loader   /vmlinuz-linux
     initrd   /initramfs-linux.img
-    options  "root=PARTUUID=91d0cd39-9980-4f96-ab11-66b348c15335 rw rootflags=subvol=ROOT resume=UUID=f2e83f5b-a526-439e-89c0-112ddc5aeb76 iommu=pt"
+    options  "root=PARTUUID=91d0cd39-9980-4f96-ab11-66b348c15335 rw rootflags=subvol=ROOT initrd=/amd-ucode.img resume=UUID=f2e83f5b-a526-439e-89c0-112ddc5aeb76 iommu=pt
+              amd_iommu_dump=1 ivrs_ioapic[4]=00:14.0 ivrs_ioapic[5]=00:00.2 module_blacklist=sp5100_tco"
     submenuentry "Boot using fallback initramfs" {
         initrd /initramfs-linux-fallback.img
     }
