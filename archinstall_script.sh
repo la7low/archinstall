@@ -183,7 +183,7 @@ arch-chroot /mnt/btrfs-active
 ############
 
 1;
-pacstrap /mnt/root base base-devel btrfs-progs sudo dosfstools vim
+pacstrap /mnt/root base base-devel btrfs-progs sudo dosfstools vim linux linux-firmware netctl dialog openssh wpa_supplicant dialog dhcpcd
 genfstab -U -p /mnt/root >> /mnt/root/etc/fstab
 arch-chroot /mnt/root /bin/bash
 
@@ -232,8 +232,12 @@ echo "FONT_MAP=8859-2" >> /etc/vconsole.conf
 
 ln -s /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 hwclock --systohc --utc
-pacman -S ntp
-systemctl enable ntpd
+# pacman -S ntp
+# systemctl enable ntpd
+timedatectlset-ntp true
+timedatectl set-timezone Europe/Budapest
+systemctl enable systemd-timesyncd
+timedatectl status
 
 # zsh shell but modify it to python shells
 # pacman -S zsh grml-zsh-config
@@ -370,34 +374,8 @@ Interface=enp8s0
 Connection=ethernet
 IP=dhcp
 or sudo systemctl enable dhcpcd@enp8s0.service
-pacman -S openssh xorg-xauth
-
-# possibly missing fw for module wd719 aic94xx
-# 1st way to install yaourt
-wget https://aur.archlinux.org/cgit/aur.git/snapshot/package-query.tar.gz
-tar -zvxf package-query.tar.gz && cd package-query && makepkg -sri
-cd .. && rm -fr package-query*
-wget https://aur.archlinux.org/cgit/aur.git/snapshot/yaourt.tar.gz
-# 2nd way
-sudo vim /etc/pacman.conf
-[archlinuxfr]
-SigLevel = Never
-Server = http://repo.archlinux.fr/$arch
 #
-sudo pacman -Sy yaourt
-#
-sudo vim /etc/yaourtrc
-DEVELSRCDIR="/var/abs/local/yaourtbuild"
-# Build
-EXPORT=2
-#
-sudo mkdir -p /var/abs/local/yaourtbuild
-sudo chmod -R a+rwX /var/abs/local
-#
-sudo pacman -S rsync git colordiff
-yaourt -S customizepkg-git
-yaourt -S wd719x-firmware aic94xx-firmware
-sudo mkinitcpio -p linux
+sudo pacman -S openssh rsync git colordiff
 
 # check suspend or ignore at https://wiki.archlinux.org/index.php/Power_management
 sudo vim /etc/systemd/logind.conf
