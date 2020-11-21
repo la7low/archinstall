@@ -183,7 +183,7 @@ arch-chroot /mnt/btrfs-active
 ############
 
 1;
-pacstrap /mnt/root base base-devel btrfs-progs sudo dosfstools vim linux linux-firmware netctl dialog openssh wpa_supplicant dialog dhcpcd
+pacstrap /mnt/root base base-devel btrfs-progs sudo dosfstools vim linux linux-firmware netctl dialog openssh wpa_supplicant dialog dhcpcd pacman-contrib kitty wl-clipboard
 genfstab -U -p /mnt/root >> /mnt/root/etc/fstab
 arch-chroot /mnt/root /bin/bash
 
@@ -209,7 +209,9 @@ vm.swappiness=10
 
 # configuration
 cp /etc/pacman.d/mirrorlist{,.backup}
-# rankmirrors -n 6 /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
+awk '/^## Hungary$/{f=1; next}f==0{next}/^$/{exit}{print substr($0, 1);}' /etc/pacman.d/mirrorlist.backup
+awk '/^## Austria$/{f=1; next}f==0{next}/^$/{exit}{print substr($0, 1);}' /etc/pacman.d/mirrorlist.backup
+rankmirrors -n 6 /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
 #
 echo $HOSTNAME > /etc/hostname
 /etc/hosts
@@ -234,7 +236,7 @@ ln -s /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 hwclock --systohc --utc
 # pacman -S ntp
 # systemctl enable ntpd
-timedatectlset-ntp true
+timedatectl set-ntp true
 timedatectl set-timezone Europe/Budapest
 systemctl enable systemd-timesyncd
 timedatectl status
@@ -319,7 +321,7 @@ menuentry "archlinux64" {
     volume   BOOT
     loader   /vmlinuz-linux
     initrd   /initramfs-linux.img
-    options  "root=PARTUUID=8234385c-5d6f-44b0-9596-7697be6e360a rw rootflags=subvol=ROOT initrd=/intel-ucode.img"
+    options  "root=PARTUUID=8234385c-5d6f-44b0-9596-7697be6e360a rw rootflags=subvol=ROOT initrd=intel-ucode.img"
     submenuentry "Boot using fallback initramfs" {
         initrd /initramfs-linux-fallback.img
     }
@@ -333,7 +335,7 @@ menuentry "archlinux64" {
     volume   BOOT
     loader   /vmlinuz-linux
     initrd   /initramfs-linux.img
-    options  "root=PARTUUID=91d0cd39-9980-4f96-ab11-66b348c15335 rw rootflags=subvol=ROOT initrd=/amd-ucode.img resume=UUID=f2e83f5b-a526-439e-89c0-112ddc5aeb76 iommu=pt
+    options  "root=PARTUUID=91d0cd39-9980-4f96-ab11-66b348c15335 rw rootflags=subvol=ROOT initrd=amd-ucode.img resume=UUID=f2e83f5b-a526-439e-89c0-112ddc5aeb76 iommu=pt
               amd_iommu_dump=1 ivrs_ioapic[4]=00:14.0 ivrs_ioapic[5]=00:00.2 module_blacklist=sp5100_tco"
     submenuentry "Boot using fallback initramfs" {
         initrd /initramfs-linux-fallback.img
@@ -421,6 +423,7 @@ sudo vim /etc/snapper/configs/root
 
 # browser psd
 https://wiki.archlinux.org/index.php/profile-sync-daemon
+sudo pacman -S profile-sync-daemon
 
 # install nvidia with bumblebee
 gpasswd -a user bumblebee audio video
