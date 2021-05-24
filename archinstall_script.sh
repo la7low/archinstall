@@ -295,7 +295,7 @@ cd /tmp
 wget  http://sourceforge.net/projects/refind/files/0.10.1/refind-bin-0.10.1.zip/download
 unzip download
 # install refind with pacman
-pacman -S refind-efi
+pacman -S refind
 # check boot is mounted
 refind-install --usedefault /dev/sda1 --alldrivers
 
