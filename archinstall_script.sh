@@ -57,12 +57,17 @@ case $installfor in
         USERNAME="lapi"
         FULL_NAME="Palinka Lovagok"
         ;;
+    arnold)
+        HOSTNAME="arnoldpc"
+        USERNAME="arnold"
+        FULL_NAME="Eszenyi Arnold"
+        ;;
     *)
         echo "Please give a valid option for installfor"
         exit 1
 esac
 
-ZONEINFO="Europe/Berlin"
+ZONEINFO="Europe/Budapest"
 EFI_MOUNTOPTS="rw,nosuid,nodev,noatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro,discard"
 BTRFS_LABEL="arch64"
 # check with "hdparm -I /dev/sda | grep TRIM" to see if the ssd supports trim, only then use the discard mount option:
@@ -78,6 +83,10 @@ if [$installfor = 'up2']
 then
     EFI_DEVICE="/dev/mmcblk0p1"
     BTRFS_DEVICE="/dev/mmcblk0p3"
+if [$installfor = 'arnold']
+then
+    EFI_DEVICE="/dev/nvme0n1p1"
+    BTRFS_DEVICE="/dev/nvme0n1p2"
 else
     EFI_DEVICE="/dev/sda1"
     BTRFS_DEVICE="/dev/sda2"
@@ -232,7 +241,7 @@ echo KEYMAP=uk > /etc/vconsole.conf
 echo "FONT=Lat2-Terminus16" >> /etc/vconsole.conf
 echo "FONT_MAP=8859-2" >> /etc/vconsole.conf
 
-ln -s /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+ln -s /usr/share/zoneinfo/Europe/Budapest /etc/localtime
 hwclock --systohc --utc
 # pacman -S ntp
 # systemctl enable ntpd
@@ -362,8 +371,8 @@ umount /mnt/root/*
 reboot
 
 # https://wiki.archlinux.org/index.php/Fonts#Console_fonts
-setfont ter-132n -m 8859-2
 sudo pacman -S terminus-font
+setfont ter-132n -m 8859-2
 /etc/vconsole.conf FONT=ter-132n
 /etc/mkinitcpio.conf consolefont to HOOKS
 mkinitcpio -p linux
@@ -425,19 +434,9 @@ sudo vim /etc/snapper/configs/root
 https://wiki.archlinux.org/index.php/profile-sync-daemon
 sudo pacman -S profile-sync-daemon
 
-# install nvidia with bumblebee
-gpasswd -a user bumblebee audio video
-sudo systemctl enable bumblebeed
-# remove nvidia
-sudo pacman -Rs xorg-server xorg-server-devel xorg-server-utils xorg-apps xorg-xinit nvidia nvidia-utils bumblebee mesa xf86-video-intel lib32-virtualgl  lib32-nvidia-utils lib32-mesa-libgl bbswitch bbswitch-dkms
-sudo rm -fr /etc/X11/xorg.conf.d/
-sudo vim /etc/modprobe.d/blacklist.conf
-
-
 # after dtop env
-sudo pacman -S gnome gnome-extra gnome-tweak-tool
-sudo systemctl enable gdm.services
-yaourt -S gnome-software
+sudo pacman -S gnome gnome-extra
+sudo systemctl enable gdm
 
 rfkill list all
 sudo pacman -S bluez bluez-utils rfkill
@@ -446,3 +445,8 @@ sudo systemctl disable dhcpcd@
 sudo systemctl enable NetworkManager
 
 https://wiki.archlinux.org/index.php/microcode
+
+# others
+sudo pacman -S huspell huspell-hu
+sudo pacman -S firefox firefox-i18n-hu
+sudo pacman -S gnu-free-fonts noto-fonts ttf-bitstream-vera ttf-croscore ttf-dejavu ttf-droid ttf-ibm-plex ttf-liberation
